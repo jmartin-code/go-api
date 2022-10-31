@@ -106,6 +106,40 @@ func (u *User) GetUserByEmail(email string) (*User, error) {
 	return &user, nil
 }
 
+func (u *User) GetUserById(id int) (*User, error) {
+	// if it takes longer than 3 seconds, cancel
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `select id, email, first_name, last_name, password, created_at, updated_at where email = $1`
+
+	row, err := db.QueryContext(ctx, query, email)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer row.Close()
+
+	var user User
+
+	err = row.Scan(
+		&user.ID,
+		&user.Email,
+		&user.FirstName,
+		&user.LastName,
+		&user.Password,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
 type Token struct {
 	ID        int       `json:"id"`
 	UserID    int       `json:"user_id"`
