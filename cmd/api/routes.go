@@ -25,7 +25,7 @@ func (app *application) routes() http.Handler {
 
 	mux.Get("/api/user/all", func(w http.ResponseWriter, r *http.Request) {
 		var users data.User
-		all, err := users.GetAll()
+		all, err := users.GetAllUsers()
 
 		if err != nil {
 			app.errorLog.Println(err)
