@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 const dbTimeout = time.Second * 3
@@ -137,7 +139,7 @@ func (u *User) UpdateUser(id int) error {
 			email = $1,
 			first_name = $2,
 			last_name = $3,
-			updated_at = $4,
+			updated_at = $4
 			where id = $5
 	`
 
@@ -154,6 +156,38 @@ func (u *User) UpdateUser(id int) error {
 	}
 
 	return nil
+}
+
+func (u *User) AddUser(user User) (int, error) {
+	// if it takes longer than 3 seconds, cancel
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	//create has password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
+
+	if err != nil {
+		return 0, err
+	}
+
+	var userId int
+
+	query := `insert into users (email, first_name, last_name, password, created_at, updated_at) values ($1, $2, $3, $4, $5, $6) return id`
+
+	err = db.QueryRowContext(ctx, query,
+		user.Email,
+		user.FirstName,
+		user.LastName,
+		hashedPassword,
+		time.Now(),
+		time.Now(),
+	).Scan(&userId)
+
+	if err != nil {
+		return 0, nil
+	}
+
+	return userId, nil
 }
 
 func (u *User) DeleteUser() error {
