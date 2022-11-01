@@ -156,6 +156,22 @@ func (u *User) UpdateUser(id int) error {
 	return nil
 }
 
+func (u *User) DeleteUser() error {
+	// if it takes longer than 3 seconds, cancel
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `delete from users where id = $1`
+
+	_, err := db.ExecContext(ctx, query, u.ID)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 type Token struct {
 	ID        int       `json:"id"`
 	UserID    int       `json:"user_id"`
