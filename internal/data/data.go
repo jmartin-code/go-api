@@ -79,17 +79,11 @@ func (u *User) GetUserByEmail(email string) (*User, error) {
 
 	query := `select id, email, first_name, last_name, password, created_at, updated_at where email = $1`
 
-	row, err := db.QueryContext(ctx, query, email)
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer row.Close()
+	row := db.QueryRowContext(ctx, query, email)
 
 	var user User
 
-	err = row.Scan(
+	err := row.Scan(
 		&user.ID,
 		&user.Email,
 		&user.FirstName,
@@ -111,19 +105,13 @@ func (u *User) GetUserById(id int) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := `select id, email, first_name, last_name, password, created_at, updated_at where email = $1`
+	query := `select id, email, first_name, last_name, password, created_at, updated_at from users where id = $1`
 
-	row, err := db.QueryContext(ctx, query, email)
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer row.Close()
+	row := db.QueryRowContext(ctx, query, id)
 
 	var user User
 
-	err = row.Scan(
+	err := row.Scan(
 		&user.ID,
 		&user.Email,
 		&user.FirstName,
@@ -138,6 +126,34 @@ func (u *User) GetUserById(id int) (*User, error) {
 	}
 
 	return &user, nil
+}
+
+func (u *User) UpdateUser(id int) error {
+	// if it takes longer than 3 seconds, cancel
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `update users set
+			email = $1,
+			first_name = $2,
+			last_name = $3,
+			updated_at = $4,
+			where id = $5
+	`
+
+	_, err := db.ExecContext(ctx, query,
+		u.Email,
+		u.FirstName,
+		u.LastName,
+		time.Now(),
+		u.ID,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type Token struct {
