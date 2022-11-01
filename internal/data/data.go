@@ -190,6 +190,29 @@ func (u *User) AddUser(user User) (int, error) {
 	return userId, nil
 }
 
+func (u *User) ResetUserPassword(password string) error {
+	// if it takes longer than 3 seconds, cancel
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	//create has password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
+
+	if err != nil {
+		return err
+	}
+
+	query := `update user set password = $1 where id = $2`
+
+	_, err = db.ExecContext(ctx, query, hashedPassword, u.ID)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (u *User) DeleteUser() error {
 	// if it takes longer than 3 seconds, cancel
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
