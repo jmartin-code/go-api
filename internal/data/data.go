@@ -178,7 +178,7 @@ func (u *User) AddUser(user User) (int, error) {
 
 	var userId int
 
-	query := `insert into users (email, first_name, last_name, password, created_at, updated_at) values ($1, $2, $3, $4, $5, $6) return id`
+	query := `insert into users (email, first_name, last_name, password, created_at, updated_at) values ($1, $2, $3, $4, $5, $6) returning id`
 
 	err = db.QueryRowContext(ctx, query,
 		user.Email,
@@ -190,6 +190,7 @@ func (u *User) AddUser(user User) (int, error) {
 	).Scan(&userId)
 
 	if err != nil {
+		println("error inside addUser")
 		return 0, nil
 	}
 
