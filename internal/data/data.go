@@ -191,7 +191,7 @@ func (u *User) AddUser(user User) (int, error) {
 
 	if err != nil {
 		println("error inside addUser")
-		return 0, nil
+		return 0, err
 	}
 
 	return userId, nil
@@ -395,7 +395,7 @@ func (t *Token) InsertToken(token Token, u User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := `delete from tokes where user_id = $1`
+	query := `delete from tokens where user_id = $1`
 
 	_, err := db.ExecContext(ctx, query, token.UserID)
 
@@ -403,7 +403,7 @@ func (t *Token) InsertToken(token Token, u User) error {
 		return err
 	}
 
-	query = `insert into tokens (user_id, email, token, token_hash, created_at, updated_at, expiry values ($1, $2, $3, $4, $5, $6, $7)`
+	query = `insert into tokens (user_id, email, token, token_hash, created_at, updated_at, expiry) values ($1, $2, $3, $4, $5, $6, $7)`
 
 	_, err = db.ExecContext(ctx, query,
 		token.UserID,
