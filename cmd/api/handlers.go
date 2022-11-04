@@ -35,13 +35,15 @@ func (app *application) Login(w http.ResponseWriter, r *http.Request) {
 	user, err := app.models.User.GetUserByEmail(creds.Username)
 
 	if err != nil {
-		app.errorJSON(w, errors.New("invalid username or password"))
+		println("failed here")
+		app.errorJSON(w, errors.New("invalid username"))
 		return
 	}
 
 	validPassword, err := user.UserPasswordMatch(creds.Password)
 	if err != nil || !validPassword {
-		app.errorJSON(w, errors.New("invalid username or password"))
+		println("or failed here")
+		app.errorJSON(w, errors.New("invalid password"))
 		return
 	}
 
@@ -65,4 +67,32 @@ func (app *application) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		app.errorLog.Println(err)
 	}
+}
+
+func (app *application) Logout(w http.ResponseWriter, r *http.Request) {
+	println("hdhfasdfihasodfn")
+	var requestPayload struct {
+		Token string `json:"token"`
+	}
+
+	err := app.readJSON(w, r, &requestPayload)
+
+	if err != nil {
+		app.errorJSON(w, errors.New("invalid json"))
+		return
+	}
+
+	err = app.models.Token.DeleteByToken(requestPayload.Token)
+	if err != nil {
+		app.errorJSON(w, errors.New("invalid json"))
+		return
+	}
+
+	payload := jsonResponse{
+		Error:   false,
+		Message: "logged out",
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, payload)
+
 }

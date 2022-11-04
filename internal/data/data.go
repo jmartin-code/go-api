@@ -85,9 +85,10 @@ func (u *User) GetUserByEmail(email string) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := `select id, email, first_name, last_name, password, created_at, updated_at where email = $1`
+	query := `select id, email, first_name, last_name, password, created_at, updated_at from users where email = $1`
 
 	row := db.QueryRowContext(ctx, query, email)
+	println(row)
 
 	var user User
 
