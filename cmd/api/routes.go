@@ -25,6 +25,19 @@ func (app *application) routes() http.Handler {
 	mux.Post("/api/login", app.Login)
 	mux.Post("/api/logout", app.Logout)
 
+	mux.Route("/admin", func(r chi.Router) {
+		mux.Use(app.AuthTokenMiddleware)
+
+		mux.Post("/api/foo", func(w http.ResponseWriter, r *http.Request) {
+			payload := jsonResponse{
+				Error:   false,
+				Message: "bar",
+			}
+
+			app.writeJSON(w, http.StatusOK, payload)
+		})
+	})
+
 	mux.Get("/api/user/all", func(w http.ResponseWriter, r *http.Request) {
 		var users data.User
 		all, err := users.GetAllUsers()
