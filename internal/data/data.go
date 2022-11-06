@@ -137,7 +137,7 @@ func (u *User) GetUserById(id int) (*User, error) {
 	return &user, nil
 }
 
-func (u *User) UpdateUser(id int) error {
+func (u *User) UpdateUser() error {
 	// if it takes longer than 3 seconds, cancel
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()

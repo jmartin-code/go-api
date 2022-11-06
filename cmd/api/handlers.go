@@ -4,7 +4,10 @@ import (
 	"errors"
 	"go-api/internal/data"
 	"net/http"
+	"strconv"
 	"time"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type jsonResponse struct {
@@ -114,4 +117,73 @@ func (app *application) AllUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.writeJSON(w, http.StatusOK, payload)
+}
+
+func (app *application) EditUser(w http.ResponseWriter, r *http.Request) {
+	var user data.User
+
+	err := app.readJSON(w, r, &user)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	if user.ID == 0 {
+		// save new user
+		if _, err := app.models.User.AddUser(user); err != nil {
+			if err != nil {
+				app.errorJSON(w, err)
+				return
+			}
+		}
+	} else {
+		// update user
+		u, err := app.models.User.GetUserById(user.ID)
+		if err != nil {
+			app.errorJSON(w, err)
+			return
+		}
+
+		u.Email = user.Email
+		u.FirstName = user.FirstName
+		u.LastName = user.LastName
+
+		if err := u.UpdateUser(); err != nil {
+			app.errorJSON(w, err)
+			return
+		}
+
+		// update password
+		if user.Password != "" {
+			err := u.ResetUserPassword(user.Password)
+			if err != nil {
+				app.errorJSON(w, err)
+				return
+			}
+		}
+
+	}
+
+	payload := jsonResponse{
+		Error:   false,
+		Message: "Changes saved!",
+	}
+
+	_ = app.writeJSON(w, http.StatusAccepted, payload)
+
+}
+
+func (app *application) GetUser(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+
+	if err != nil {
+		app.errorJSON(w, err)
+	}
+
+	user, err := app.models.User.GetUserById(id)
+	if err != nil {
+		app.errorJSON(w, err)
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, user)
 }
