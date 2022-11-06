@@ -25,35 +25,12 @@ func (app *application) routes() http.Handler {
 	mux.Post("/api/login", app.Login)
 	mux.Post("/api/logout", app.Logout)
 
-	mux.Route("/admin", func(r chi.Router) {
+	mux.Route("/api/admin", func(mux chi.Router) {
+		// AUTHENTICATED ROUTES
 		mux.Use(app.AuthTokenMiddleware)
 
-		mux.Post("/api/foo", func(w http.ResponseWriter, r *http.Request) {
-			payload := jsonResponse{
-				Error:   false,
-				Message: "bar",
-			}
-
-			app.writeJSON(w, http.StatusOK, payload)
-		})
-	})
-
-	mux.Get("/api/user/all", func(w http.ResponseWriter, r *http.Request) {
-		var users data.User
-		all, err := users.GetAllUsers()
-
-		if err != nil {
-			app.errorLog.Println(err)
-			return
-		}
-
-		payload := jsonResponse{
-			Error:   false,
-			Message: "Success",
-			Data:    envelope{"users": all},
-		}
-
-		app.writeJSON(w, http.StatusOK, payload)
+		// All users
+		mux.Post("/users", app.AllUsers)
 	})
 
 	mux.Get("/api/user/add", func(w http.ResponseWriter, r *http.Request) {
@@ -80,7 +57,7 @@ func (app *application) routes() http.Handler {
 	})
 
 	mux.Get("/api/test-generate-token", func(w http.ResponseWriter, r *http.Request) {
-		token, err := app.models.Token.GenerateToken(1, 60*time.Minute)
+		token, err := app.models.Token.GenerateToken(2, 60*time.Minute)
 
 		if err != nil {
 			app.infoLog.Println(err)
@@ -103,7 +80,7 @@ func (app *application) routes() http.Handler {
 	})
 
 	mux.Get("/api/test-save-token", func(w http.ResponseWriter, r *http.Request) {
-		token, err := app.models.Token.GenerateToken(1, 60*time.Minute)
+		token, err := app.models.Token.GenerateToken(2, 60*time.Minute)
 
 		if err != nil {
 			app.infoLog.Println(err)
