@@ -210,7 +210,7 @@ func (u *User) ResetUserPassword(password string) error {
 		return err
 	}
 
-	query := `update user set password = $1 where id = $2`
+	query := `update users set password = $1 where id = $2`
 
 	_, err = db.ExecContext(ctx, query, hashedPassword, u.ID)
 
@@ -245,6 +245,22 @@ func (u *User) DeleteUser() error {
 	query := `delete from users where id = $1`
 
 	_, err := db.ExecContext(ctx, query, u.ID)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *User) DeleteUserById(id int) error {
+	// if it takes longer than 3 seconds, cancel
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `delete from users where id = $1`
+
+	_, err := db.ExecContext(ctx, query, id)
 
 	if err != nil {
 		return err
