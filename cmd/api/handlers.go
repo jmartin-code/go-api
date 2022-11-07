@@ -46,7 +46,11 @@ func (app *application) Login(w http.ResponseWriter, r *http.Request) {
 
 	validPassword, err := user.UserPasswordMatch(creds.Password)
 	if err != nil || !validPassword {
-		println("or failed here")
+		app.errorJSON(w, errors.New("invalid password"))
+		return
+	}
+
+	if user.Active != 0 {
 		app.errorJSON(w, errors.New("invalid password"))
 		return
 	}
@@ -147,6 +151,7 @@ func (app *application) EditUser(w http.ResponseWriter, r *http.Request) {
 		u.Email = user.Email
 		u.FirstName = user.FirstName
 		u.LastName = user.LastName
+		u.Active = user.Active
 
 		if err := u.UpdateUser(); err != nil {
 			app.errorJSON(w, err)
@@ -209,4 +214,39 @@ func (app *application) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = app.writeJSON(w, http.StatusOK, payload)
+}
+
+func (app *application) LogUserOutAndSetInactive(w http.ResponseWriter, r *http.Request) {
+	userId, err := strconv.Atoi(chi.URLParam(r, "id"))
+
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	user, err := app.models.User.GetUserById(userId)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	user.Active = 0
+	err = user.UpdateUser()
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	err = app.models.Token.DeleteTokenForUser(userId)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	payload := jsonResponse{
+		Error:   false,
+		Message: "User is logged out and set to inactive",
+	}
+
+	app.writeJSON(w, http.StatusOK, payload)
 }
