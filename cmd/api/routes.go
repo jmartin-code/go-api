@@ -22,6 +22,7 @@ func (app *application) routes() http.Handler {
 
 	mux.Post("/api/login", app.Login)
 	mux.Post("/api/logout", app.Logout)
+	mux.Post("/api/validate-token", app.ValidateToken)
 
 	mux.Route("/api/admin", func(mux chi.Router) {
 		// AUTHENTICATED ROUTES

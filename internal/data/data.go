@@ -49,9 +49,9 @@ func (u *User) GetAllUsers() ([]*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := `select id, email, first_name, last_name, password, active, created_at, updated_at,
+	query := `select id, email, first_name, last_name, password, user_active, created_at, updated_at,
 	case
-		when(select count(id) from tokens t where user_id = users.id and t.expiry > NOW()) > 0 then 1
+		when (select count(id) from tokens t where user_id = users.id and t.expiry > NOW()) > 0 then 1
 		else 0
 	end as has_token
 	from users order by last_name`
@@ -93,7 +93,7 @@ func (u *User) GetUserByEmail(email string) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := `select id, email, first_name, last_name, password, active, created_at, updated_at from users where email = $1`
+	query := `select id, email, first_name, last_name, password, user_active, created_at, updated_at from users where email = $1`
 
 	row := db.QueryRowContext(ctx, query, email)
 	println(row)
@@ -123,7 +123,7 @@ func (u *User) GetUserById(id int) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := `select id, email, first_name, last_name, password, active, created_at, updated_at from users where id = $1`
+	query := `select id, email, first_name, last_name, password, user_active, created_at, updated_at from users where id = $1`
 
 	row := db.QueryRowContext(ctx, query, id)
 
@@ -156,7 +156,7 @@ func (u *User) UpdateUser() error {
 			email = $1,
 			first_name = $2,
 			last_name = $3,
-			active = $4,
+			user_active = $4,
 			updated_at = $5
 			where id = $6
 	`
@@ -191,7 +191,7 @@ func (u *User) AddUser(user User) (int, error) {
 
 	var userId int
 
-	query := `insert into users (email, first_name, last_name, password, active, created_at, updated_at) values ($1, $2, $3, $4, $5, $6, $7) returning id`
+	query := `insert into users (email, first_name, last_name, password, user_active, created_at, updated_at) values ($1, $2, $3, $4, $5, $6, $7) returning id`
 
 	err = db.QueryRowContext(ctx, query,
 		user.Email,
@@ -327,7 +327,7 @@ func (t *Token) GetUserForToken(token Token) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := `select id, email, first_name, last_name, password, active, created_at, updated_at from users where id = $1`
+	query := `select id, email, first_name, last_name, password, user_active, created_at, updated_at from users where id = $1`
 
 	row := db.QueryRowContext(ctx, query, token.UserID)
 
@@ -404,7 +404,7 @@ func (t *Token) AuthenticateToken(r *http.Request) (*User, error) {
 		return nil, errors.New("not matching user found")
 	}
 
-	if user.Active != 0 {
+	if user.Active == 0 {
 		return nil, errors.New("user not active")
 	}
 
