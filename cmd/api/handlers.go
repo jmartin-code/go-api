@@ -343,15 +343,15 @@ func (app *application) AllAuthors(w http.ResponseWriter, r *http.Request) {
 	app.writeJSON(w, http.StatusOK, payload)
 }
 
-func (app *application) EditBook(w http.ResponseWriter r *http.Request){
+func (app *application) EditBook(w http.ResponseWriter, r *http.Request) {
 	var requestPayload struct {
-		ID int `json:"id"`
-		Title string `json:"title"`
-		AuthorID int `json:"author_id"`
-		PublicationYear int `json:"publication_year"`
-		Description string `json:"description"`
-		CoverBase64 string `json:"cover"`
-		genreIDs []int `json:"genre_ids"`
+		ID              int    `json:"id"`
+		Title           string `json:"title"`
+		AuthorID        int    `json:"author_id"`
+		PublicationYear int    `json:"publication_year"`
+		Description     string `json:"description"`
+		CoverBase64     string `json:"cover"`
+		genreIDs        []int  `json:"genre_ids"`
 	}
 
 	if err := app.readJSON(w, r, &requestPayload); err != nil {
@@ -360,26 +360,26 @@ func (app *application) EditBook(w http.ResponseWriter r *http.Request){
 	}
 
 	book := data.Book{
-		ID: requestPayload.ID,
-		Title: requestPayload.Title,
-		AuthorID: requestPayload.AuthorID,
+		ID:              requestPayload.ID,
+		Title:           requestPayload.Title,
+		AuthorID:        requestPayload.AuthorID,
 		PublicationYear: requestPayload.PublicationYear,
-		Description: requestPayload.Description,
-		Slug: slugify.Slugify(requestPayload.Title),
-		GenreIDs: requestPayload.genreIDs,
+		Description:     requestPayload.Description,
+		Slug:            slugify.Slugify(requestPayload.Title),
+		GenreIDs:        requestPayload.genreIDs,
 	}
 
-	if len(requestPayload.CoverBase64 > 0){
+	if len(requestPayload.CoverBase64) > 0 {
 		decoded, err := base64.StdEncoding.DecodeString(requestPayload.CoverBase64)
 		if err != nil {
 			app.errorJSON(w, err)
 			return
 		}
-	}
 
-	if err := os.WriteFile(fmt.Sprintf("%s/covers/%s.jpg", staticPath, book.Slug), decoded, 0666); err != nil {
-		app.errorJSON(w, err)
-		return
+		if err := os.WriteFile(fmt.Sprintf("%s/covers/%s.jpg", staticPath, book.Slug), decoded, 0666); err != nil {
+			app.errorJSON(w, err)
+			return
+		}
 	}
 
 	if book.ID == 0 {
@@ -389,7 +389,7 @@ func (app *application) EditBook(w http.ResponseWriter r *http.Request){
 			app.errorJSON(w, err)
 			return
 		}
-	}else {
+	} else {
 		// update book
 		if err := book.Update(); err != nil {
 			app.errorJSON(w, err)
@@ -399,7 +399,7 @@ func (app *application) EditBook(w http.ResponseWriter r *http.Request){
 	}
 
 	payload := jsonResponse{
-		Error: false,
+		Error:   false,
 		Message: "Changes Saved",
 	}
 
