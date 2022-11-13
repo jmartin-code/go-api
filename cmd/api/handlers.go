@@ -351,7 +351,7 @@ func (app *application) EditBook(w http.ResponseWriter, r *http.Request) {
 		PublicationYear int    `json:"publication_year"`
 		Description     string `json:"description"`
 		CoverBase64     string `json:"cover"`
-		genreIDs        []int  `json:"genre_ids"`
+		GenreIDs        []int  `json:"genre_ids"`
 	}
 
 	if err := app.readJSON(w, r, &requestPayload); err != nil {
@@ -366,7 +366,7 @@ func (app *application) EditBook(w http.ResponseWriter, r *http.Request) {
 		PublicationYear: requestPayload.PublicationYear,
 		Description:     requestPayload.Description,
 		Slug:            slugify.Slugify(requestPayload.Title),
-		GenreIDs:        requestPayload.genreIDs,
+		GenreIDs:        requestPayload.GenreIDs,
 	}
 
 	if len(requestPayload.CoverBase64) > 0 {
