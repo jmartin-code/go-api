@@ -38,8 +38,11 @@ func (app *application) routes() http.Handler {
 		mux.Post("/users/delete", app.DeleteUser)
 		mux.Post("/users/user-logout/{id}", app.LogUserOutAndSetInactive)
 
-		// Books
+		// Authors
 		mux.Post("/authors", app.AllAuthors)
+
+		// Books
+		mux.Post("/books/{id}", app.BookById)
 		mux.Post("/books/save", app.EditBook)
 
 	})
