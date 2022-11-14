@@ -428,3 +428,26 @@ func (app *application) BookById(w http.ResponseWriter, r *http.Request) {
 
 	app.writeJSON(w, http.StatusOK, payload)
 }
+
+func (app *application) BookDelete(w http.ResponseWriter, r *http.Request) {
+	var requestPayload struct {
+		ID int `json:"id"`
+	}
+
+	if err := app.readJSON(w, r, &requestPayload); err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	if err := app.models.Book.DeleteByID(requestPayload.ID); err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	payload := jsonResponse{
+		Error:   false,
+		Message: "Book Deleted",
+	}
+
+	app.writeJSON(w, http.StatusOK, payload)
+}

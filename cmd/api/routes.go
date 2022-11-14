@@ -43,6 +43,7 @@ func (app *application) routes() http.Handler {
 
 		// Books
 		mux.Post("/books/{id}", app.BookById)
+		mux.Post("/books/delete", app.BookDelete)
 		mux.Post("/books/save", app.EditBook)
 
 	})
